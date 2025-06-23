@@ -22,6 +22,7 @@ import javax.xml.stream.XMLStreamWriter;
 import java.io.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 
@@ -151,6 +152,11 @@ public class MzIdentMLMarshaller {
             } else {
                 if (logger.isDebugEnabled()) logger.debug("Object '" + object.getClass().getName() +
                                                           "' will be treated as fragment.");
+                marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION,
+                        version.getNameSpace() + " " + version.getSchema());
+                if (((MzIdentML) object).getCreationDate() == null) {
+                    ((MzIdentML) object).setCreationDate(Calendar.getInstance());
+                }
             }
 
             QName aQName = version.getQNameForClass(object.getClass());
