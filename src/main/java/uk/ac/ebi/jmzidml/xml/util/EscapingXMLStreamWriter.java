@@ -86,7 +86,7 @@ public class EscapingXMLStreamWriter implements XMLStreamWriter {
 
     public void writeAttribute(String prefix, String namespaceUri, String localName, String value)
             throws XMLStreamException {
-        writer.writeAttribute("" , version.getNameSpace(), localName, EscapingXMLUtilities.escapeCharacters(value));
+        writer.writeAttribute("", version.getNameSpace(), localName, EscapingXMLUtilities.escapeCharacters(value));
     }
 
     public void writeAttribute(String namespaceUri, String localName, String value)
