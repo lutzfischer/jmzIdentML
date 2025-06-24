@@ -181,6 +181,8 @@ public class MzIdentMLMarshaller {
                 if (logger.isDebugEnabled()) logger.debug("Object '" + object.getClass().getName() +
                                                           "' will be treated as fragment.");
             } else {
+                if (logger.isDebugEnabled()) logger.debug("Object '" + object.getClass().getName() +
+                                                          "' is root - exporting complete XML-file.");
                 marshallRoot((MzIdentML)object, out, UUID.randomUUID().toString(), encoding, version);
                 return;
             }
