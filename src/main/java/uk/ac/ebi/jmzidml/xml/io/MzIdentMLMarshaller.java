@@ -20,11 +20,14 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import java.io.*;
+import java.lang.reflect.Field;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.UUID;
+import javax.xml.bind.annotation.XmlType;
 
 import javax.xml.namespace.NamespaceContext;
 
@@ -125,6 +128,34 @@ public class MzIdentMLMarshaller {
         this.marshal(object, out, "UTF-8", version);
     }
 
+    public void marshallRoot(MzIdentML root, Writer out, String encoding, String id, MzIdentMLVersion version) {
+        this.version = version;
+        try {
+            out.write(this.createXmlHeader(encoding));
+
+            out.write("\n");
+
+            // I replaced all 1.1 with 1.2 in the start tag - I am not sure if really all need to be replaced
+            out.write(this.createMzIdentMLStartTag(id) + "\n");
+
+            XmlType xmlType = root.getClass().getAnnotation(XmlType.class);
+            for (String prop : xmlType.propOrder()) {
+                Field field = MzIdentML.class.getDeclaredField(prop);
+                field.setAccessible(true);
+                Object value = field.get(root);
+                if (value != null) {
+                    // Marshal each sub-element individually
+                    this.marshal((MzIdentMLObject)value, out);
+                }
+            }            
+            out.write(this.createMzIdentMLClosingTag());
+        } catch (NoSuchFieldException | SecurityException | IllegalAccessException | IOException e) {
+            logger.error("MzMLMarshaller.marshall", e);
+            throw new IllegalStateException("Error while marshalling object:" + root.toString());
+        }
+    }
+    
+    
     /**
      * Marshal an MzIdentMLObject to output in accordance with specified mzIdentML version.
      * @param <T> Subtype of MzidentMLObject
@@ -148,15 +179,10 @@ public class MzIdentMLMarshaller {
             if (!(object instanceof MzIdentML)) {
                 marshaller.setProperty(Constants.JAXB_FRAGMENT_PROPERTY, true);
                 if (logger.isDebugEnabled()) logger.debug("Object '" + object.getClass().getName() +
-                                                          "' will be treated as root element.");
-            } else {
-                if (logger.isDebugEnabled()) logger.debug("Object '" + object.getClass().getName() +
                                                           "' will be treated as fragment.");
-                marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION,
-                        version.getNameSpace() + " " + version.getSchema());
-                if (((MzIdentML) object).getCreationDate() == null) {
-                    ((MzIdentML) object).setCreationDate(Calendar.getInstance());
-                }
+            } else {
+                marshallRoot((MzIdentML)object, out, UUID.randomUUID().toString(), encoding, version);
+                return;
             }
 
             QName aQName = version.getQNameForClass(object.getClass());
@@ -222,6 +248,10 @@ public class MzIdentMLMarshaller {
         return "<?xml version=\"1.0\" encoding=\"" + encoding + "\"?>";
     }
 
+    public String createXmlHeader(String encoding) {
+        return "<?xml version=\"1.0\" encoding=\"" + encoding + "\"?>";
+    }
+    
     public String createMzIdentMLStartTag(String id) {
         StringBuilder sb = new StringBuilder();
 
