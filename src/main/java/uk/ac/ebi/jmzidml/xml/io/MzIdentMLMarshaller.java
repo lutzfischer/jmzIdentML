@@ -183,7 +183,7 @@ public class MzIdentMLMarshaller {
             } else {
                 if (logger.isDebugEnabled()) logger.debug("Object '" + object.getClass().getName() +
                                                           "' is root - exporting complete XML-file.");
-                marshallRoot((MzIdentML)object, out, UUID.randomUUID().toString(), encoding, version);
+                marshallRoot((MzIdentML)object, out, encoding, UUID.randomUUID().toString(), version);
                 return;
             }
 
