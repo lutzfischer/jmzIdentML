@@ -26,6 +26,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.UUID;
 import javax.xml.bind.annotation.XmlType;
 
@@ -128,6 +129,19 @@ public class MzIdentMLMarshaller {
         this.marshal(object, out, "UTF-8", version);
     }
 
+    /**
+     * Marshals the root {@link MzIdentML} object to the provided {@link Writer}, manually writing the
+     * XML declaration {@link MzIdentMLMarshaller#createXmlHeader()}, the root 
+     * <MzIdentML> {@link #createMzIdentMLStartTag(java.lang.String)}  start tag with appropriate version, 
+     * namespace, and schema attributes, and then serializing all sub-elements individually.
+     *
+     * @param root the {@code MzIdentML} object to marshal as the document root
+     * @param out the {@code Writer} to which the XML content will be written
+     * @param encoding the XML encoding to declare in the header (e.g., "UTF-8")
+     * @param id the value for the {@code id} attribute on the root <MzIdentML> element
+     * @param version the {@code MzIdentMLVersion} specifying schema namespace and version attributes
+     * @throws IllegalStateException if an error occurs during marshalling
+     */
     public void marshallRoot(MzIdentML root, Writer out, String encoding, String id, MzIdentMLVersion version) {
         this.version = version;
         try {
@@ -135,7 +149,6 @@ public class MzIdentMLMarshaller {
 
             out.write("\n");
 
-            // I replaced all 1.1 with 1.2 in the start tag - I am not sure if really all need to be replaced
             out.write(this.createMzIdentMLStartTag(id) + "\n");
 
             XmlType xmlType = root.getClass().getAnnotation(XmlType.class);
@@ -149,6 +162,7 @@ public class MzIdentMLMarshaller {
                 }
             }            
             out.write(this.createMzIdentMLClosingTag());
+            out.flush();
         } catch (NoSuchFieldException | SecurityException | IllegalAccessException | IOException e) {
             logger.error("MzMLMarshaller.marshall", e);
             throw new IllegalStateException("Error while marshalling object:" + root.toString());
